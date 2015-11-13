@@ -45,9 +45,12 @@
 			break;
 		case "RSSI":
 		case "NAME":
-		case "FIRMWARE":
 			$info = 1;
                         $channel = 2;
+                        break;
+		case "FIRMWARE":
+                        $info = 2;
+                        $channel = 0;
                         break;
 		default:
 			echo "Aufruf $argv[0] ADDRESS TEMPERATURE|HUMIDITY\n";
@@ -68,16 +71,31 @@
 		}	
 
 	}
- 	if ($info){
-		$deviceInfo = $Client->send("getDeviceInfo", array($id));
-		echo $deviceInfo[$value] ."\n";
-	}
-	else {
-		$value = $Client->send("getValue", array($id, $channel, $value)) ;
-		if (empty($value)){
-			$value = 0;
-		}
-		echo $value . "\n" ;
+
+	switch ($info) {
+		case 2:
+			$fields = array("FIRMWARE","ID","ADDRESS");
+			$data = $Client->send("listDevices", array(false, $fields));
+			foreach ($data as $i) {
+				if ($i['ID'] === $id ){
+					echo $i[$value] . "\n";
+					exit(0);
+				} 
+			}
+			echo "0\n";
+                        exit(1);
+			break;
+ 		case 1:
+			$deviceInfo = $Client->send("getDeviceInfo", array($id));
+			echo $deviceInfo[$value] ."\n";
+			break;
+		case 0:
+			$value = $Client->send("getValue", array($id, $channel, $value)) ;
+			if (empty($value)){
+				$value = 0;
+			}
+			echo $value . "\n" ;
+			break;
 	}
 
 ?>
