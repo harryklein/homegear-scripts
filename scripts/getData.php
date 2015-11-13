@@ -1,5 +1,20 @@
 #!/usr/bin/env php
 <?php
+	function getId($data, $address){
+		foreach ( $data as $item )
+		{
+			if ($item["ADDRESS"] == $address)
+			{
+				$id = $item["ID"];
+				return $id;
+			}
+		}
+		echo "Unknown address [$address]\n";
+		exit(1);
+	}
+
+
+
 	/**
 	*
 	* Unterstützt HM-ES-PMSw1-Pl, HM-WDS10-TH-O, HM-CC-TC und HM-Sec-SC
@@ -60,22 +75,15 @@
 
 
 	include_once("/var/lib/homegear/scripts/Connect.php");
-	$data = $Client->send("listDevices", array());
+	//$data = $Client->send("listDevices", array());
 	//print_r($data);
 
-	foreach ( $data as $item ){
-		if ($item["ADDRESS"] == $address)
-		{
-			$id = $item["ID"];
-			break;
-		}	
-
-	}
+	$fields = array("FIRMWARE","ID","ADDRESS");
+        $data = $Client->send("listDevices", array(false, $fields));
+	$id = getId($data, $address);
 
 	switch ($info) {
 		case 2:
-			$fields = array("FIRMWARE","ID","ADDRESS");
-			$data = $Client->send("listDevices", array(false, $fields));
 			foreach ($data as $i) {
 				if ($i['ID'] === $id ){
 					echo $i[$value] . "\n";
