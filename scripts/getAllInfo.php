@@ -1,5 +1,10 @@
 #!/usr/bin/env php
 <?php
+	switch ($argv[1]) {
+		case "--list":
+			$list=1;
+			break;
+	}
 	include_once("Connect.php");
 	$data = $Client->send("listDevices", array());
 	// print_r($data);
@@ -11,6 +16,9 @@
 			echo "Address .. : " . $item["ADDRESS"] . "\n";
 			echo "Type ..... : " . $item["TYPE"]  . "\n";
 			echo "Firmware . : " . $item["FIRMWARE"]  . "\n";
+			if ($list == 1){
+				continue;
+			}
 			$amountChannel = count($item["CHANNELS"]);
 			for ($channel=0; $channel < $amountChannel; $channel++){
 				echo "Channel : $channel \n";
