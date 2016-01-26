@@ -26,6 +26,15 @@
                 echo "$temperature\n";
         }
 
+	function getValue($id, $channel, $value){
+		global $Client;
+		$value = $Client->send("getValue", array($id, $channel, $value)) ;
+                if (empty($value)){
+        	        $value = 0;
+                }
+                echo $value . "\n" ;
+	}
+
 
 	function getId($data, $address){
 		foreach ( $data as $item )
@@ -41,7 +50,6 @@
 	}
 
 
-
 	/**
 	*
 	* Unterstützt HM-ES-PMSw1-Pl, HM-WDS10-TH-O, HM-CC-TC und HM-Sec-SC
@@ -49,13 +57,43 @@
 	*
 	*/
 
+	$id=0;
+        $address="";
+        switch ($argv[1]) {
+                case "--id":
+                        $id=$argv[2];
+                        break;
+                case "--address":
+                        $address=$argv[2];
+                        break;
+                case "--help":
+                        usage();
+                        exit(0);
+                        break;
 
-	if ( isset($argv[1])){
-		$address = $argv[1];
+        }
+        $data = $Client->send("listDevices", array());
+        if ( $id > 0 || $address != "" ) {
+                $foundId = false;
+                foreach ( $data as $item ){
+                        if( empty($item["PARENT"])){
+                                if ( ($item["ID"] == $id) || ($address == $item["ADDRESS"]) ) {
+                                        $address = $item["ADDRESS"];
+                                        $id=intval($item["ID"]);
+                                        $foundId = true;
+                                }
+
+                        }
+                }
+                if (!$foundId) {
+                        echo "Id [$id] bzw. Adresse [$address] nicht gefunden. Abbruch\n";
+                        exit(1);
+                }
 	}
 
-	if ( isset($argv[2])){
-                $value = $argv[2];
+
+	if ( isset($argv[3])){
+                $value = $argv[3];
         }
 
 	if ( ! isset($address) || ! isset($value)){
@@ -75,23 +113,18 @@
 		case "TEMPERATURE":
 		case "HUMIDITY":
 		case "STATE":
-			$info = 0;
-			$channel = 1;
-			break;
+			getValue($id, 1, $value);
+			exit (0);
 		case "SETPOINT":
 		case "ADJUSTING_COMMAND":
-			$info = 0;
-                        $channel = 2;
-			break;
 		case "BOOT":
 		case "CURRENT":
 		case "ENERGY_COUNTER":
 		case "FREQUENCY":
 		case "POWER":
 		case "VOLTAGE":
-			$info = 0;
-			$channel = 2;
-			break;
+			getValue($id, 2, $value);
+			exit(0);
 		case "RSSI":
 		case "NAME":
 			$info = 1;
