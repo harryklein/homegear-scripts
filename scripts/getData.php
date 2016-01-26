@@ -1,5 +1,32 @@
 #!/usr/bin/env php
 <?php
+	include_once("/var/lib/homegear/scripts/Connect.php");
+
+	function getSetTemperature($id){
+                global $Client;
+                $channel = 2;
+                $date = getDate();
+                $time = ($date['hours'] * 60 + $date['minutes']);
+                $paramSet = $Client->send("getParamset", array($id,$channel, "MASTER"));
+
+                $weekday = strtoupper($date['weekday']);
+
+                $start = 0;
+
+                for ($i=1; $i<=24; $i++){
+                        $KEY_TIME='TIMEOUT_'.$weekday.'_'.$i;
+                        $KEY_TEMP='TEMPERATUR_'.$weekday.'_'.$i;
+                        $ende = $paramSet[$KEY_TIME];
+                        if ( ($time > $start) && ($time <= $ende)){
+                                $temperature = $paramSet[$KEY_TEMP];
+                                break;
+                        }
+                        $start = $ende;
+                }
+                echo "$temperature\n";
+        }
+
+
 	function getId($data, $address){
 		foreach ( $data as $item )
 		{
@@ -37,7 +64,14 @@
 		exit;
 	}
 
+	$fields = array("FIRMWARE","ID","ADDRESS");
+        $data = $Client->send("listDevices", array(false, $fields));
+        $id = getId($data, $address);
+
 	switch($value) {
+		case "SET_TEMPERATURE":
+			getSetTemperature($id);
+			exit (0);
 		case "TEMPERATURE":
 		case "HUMIDITY":
 		case "STATE":
@@ -74,7 +108,6 @@
 	}	
 
 
-	include_once("/var/lib/homegear/scripts/Connect.php");
 	//$data = $Client->send("listDevices", array());
 	//print_r($data);
 
