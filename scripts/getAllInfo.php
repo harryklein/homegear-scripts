@@ -13,6 +13,29 @@ Aufruf [--id ID]|[--address ADDRESS] | [--list] | [--help]
 <?php
 
 	}
+
+function findIdOrAddress($data, $ID, $address) {
+
+	$foundId = false;
+        foreach ( $data as $item ){
+        	if( empty($item["PARENT"])){
+                	if ( ($item["ID"] == $ID) || ($address == $item["ADDRESS"]) ) {
+                                        $address = $item["ADDRESS"];
+                                        $ID=intval($item["ID"]);
+                                        $foundId = true;
+                                }
+
+                        }
+	}
+	if (!$foundId) {
+		echo "Id [$ID] bzw. Adresse [$address] nicht gefunden. Abbruch\n";
+		exit(1);
+	}
+	return $ID;
+}
+
+	include_once("/var/lib/homegear/scripts/Connect.php");
+	
 	$ID=0;
 	$list=0;
 	$address="";
@@ -32,30 +55,22 @@ Aufruf [--id ID]|[--address ADDRESS] | [--list] | [--help]
 			break;
 
 	}
-	include_once("Connect.php");
+	
 	$data = $Client->send("listDevices", array());
+
 	if ( $ID > 0 || $address != "" ) {
-		$foundId = false;
-		foreach ( $data as $item ){
-			if( empty($item["PARENT"])){
-				if ( ($item["ID"] == $ID) || ($address == $item["ADDRESS"]) ) {
-					$address = $item["ADDRESS"];
-					$foundId = true;
-				}
-
-			}
-		}
-		if (!$foundId) {
-			echo "Id [$ID] nicht gefunden. Abbruch\n";
-			exit(1);
-		}
+		$ID = findIdOrAddress($data,$ID, $address);
 		$data = array();
-		$data[] = $Client->send("getDeviceDescription", array($address));
-
+		$param = array($ID,-1);
+		$data[] = $Client->send("getDeviceDescription", $param);
 	}
 
-	// print_r($data);
-	
+	//print_r($data);
+
+	printDeviceInfo($Client, $data, $list);
+
+
+function printDeviceInfo($Client, $data, $list){
 	foreach ( $data as $item ){
 		if( empty($item["PARENT"])){
 			echo "------------------------------" . "\n";
@@ -90,5 +105,5 @@ Aufruf [--id ID]|[--address ADDRESS] | [--list] | [--help]
 		}
 
 	}
-
+}
 ?>
