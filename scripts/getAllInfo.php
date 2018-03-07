@@ -14,7 +14,7 @@ Aufruf [--id ID]|[--address ADDRESS]|[--all]|[--list]|[--help]
 <?php
 }
 
-function getDeviceInfo ($ID, $address)
+function getDeviceDataViaIdOrAddress ($ID, $address)
 {
     global $Client;
     $data = $Client->send("listDevices", array());
@@ -38,7 +38,7 @@ function getDeviceInfo ($ID, $address)
     return $data;
 }
 
-function getDeviceDescriptionList ()
+function getDeviceDataFromAll ()
 {
     global $Client;
     $data = $Client->send("listDevices", array());
@@ -63,7 +63,7 @@ function printDeviceInfo ($data, $viewDetails = true)
             echo "Firmware . : " . $item["FIRMWARE"] . "\n";
             echo "Name ..... : " . $item["NAME"] . "\n";
             
-            // echo "JSON:" . json_encode($item) . "\n";
+            echo "JSON:" . json_encode($item) . "\n";
             
             if (! $viewDetails) {
                 continue;
@@ -115,27 +115,25 @@ $ID = 0;
 $list = 0;
 $address = "";
 
-
-
 if (count($argv) > 1) {
     switch ($argv[1]) {
         case "--list":
-            $data = getDeviceDescriptionList();
+            $data = getDeviceDataFromAll();
             printDeviceInfo($data, false);
             break;
         case "--id":
-            $data = getDeviceInfo($argv[2], '');
+            $data = getDeviceDataViaIdOrAddress($argv[2], '');
             printDeviceInfo($data);
             break;
         case "--address":
-            $data = getDeviceInfo('', $argv[2]);
+            $data = getDeviceDataViaIdOrAddress('', $argv[2]);
             printDeviceInfo($data);
             break;
         case "--help":
             usage();
             break;
         case "--all":
-            $data = getDeviceDescriptionList();
+            $data = getDeviceDataFromAll();
             printDeviceInfo($data);
             break;
         default:
