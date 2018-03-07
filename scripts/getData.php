@@ -29,6 +29,7 @@ $map['HM-CC-TC'] = array(
         'TEMPERATURE',
         'HUMIDITY',
         'SET_TEMPERATURE',
+        'LIST_TEMPERATURE',
         'SETPOINT',
         'ADJUSTING_COMMAND',
         'ADJUSTING_DATA'
@@ -40,10 +41,50 @@ $map['HM-Sec-SC'] = array(
         'STATE'
 );
 
-if (isset($argv[4])) {
-    print_r($map);
+/**
+ * Bean, welches die Zuordnung address, id und type hält.
+ */
+class DeviceAddress
+{
+
+    private $id;
+
+    private $address;
+
+    private $type;
+
+    function __construct ($id, $address, $type)
+    {
+        $this->id = intval($id);
+        $this->address = $address;
+        $this->type = $type;
+    }
+
+    function getId ()
+    {
+        return $this->id;
+    }
+
+    function getAddress ()
+    {
+        return $this->address;
+    }
+
+    function getType ()
+    {
+        return $this->type;
+    }
 }
 
+/**
+ * Zentraler Austrittspunk aus dem Script.
+ * Vor dem Programmende wird noch der übergebene Text ausgegeben.
+ *
+ * @param string $text
+ *            Meldung die ausgegeben werden soll-
+ * @param number $exitCode
+ *            ExitCode, mit dem Exit ausgeführt werden soll.
+ */
 function my_exit ($text, $exitCode = 1)
 {
     echo "$text\n";
@@ -59,9 +100,16 @@ function usage ()
     echo '        ' . $argv[0] . " --list\n";
 }
 
-function getSetTemperature ($id)
+/**
+ * Gibt die Soll-Temperatur aus, die laut Zeitplan zum aktuellen Zeitpunkt
+ * gelten soll.
+ * 
+ * @param unknown $id            
+ */
+function getSetTemperature (DeviceAddress $deviceAddress)
 {
     global $Client;
+    $id = $deviceAddress->getId();
     $channel = 2;
     $date = getDate();
     $time = ($date['hours'] * 60 + $date['minutes']);
@@ -88,6 +136,88 @@ function getSetTemperature ($id)
     echo "$temperature\n";
 }
 
+function getTemperatureList (DeviceAddress $item)
+{
+    global $Client;
+    $id = $item->getId();
+    $channel = 2;
+    $paramSet = $Client->send("getParamset", array(
+            $id,
+            $channel,
+            "MASTER"
+    ));
+    
+    $days = array(
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+            "SUNDAY"
+    );
+    global $format;
+    $result = array();
+    foreach ($days as $day) {
+        $result[$day] = array();
+        $last = false;
+        for ($i = 1; $i < 25; $i ++) {
+            if ($last) {
+                break;
+            }
+            $keyTime = "TIMEOUT_" . $day . "_" . $i;
+            $keyTemp = "TEMPERATUR_" . $day . "_" . $i;
+            $valueTime = $paramSet[$keyTime];
+            $valueTemp = $paramSet[$keyTemp];
+            if ($valueTime == 1440) {
+                $last = true;
+            }
+            $time = date("H:i", mktime(0, $valueTime));
+            if ($format == 'text') {
+                printf("%-10s => %5s -> %2.1f\n", $day, $time, $valueTemp);
+            }
+            $result[$day][] = new Item($time, $valueTemp);
+        }
+    }
+    if ($format == 'json') {
+        echo json_encode($result, JSON_PRETTY_PRINT);
+    }
+}
+
+class Item implements JsonSerializable
+{
+
+    private $time;
+
+    private $value;
+
+    public function __construct ($time, $value)
+    {
+        $this->time = $time;
+        $this->value = "" . $value;
+    }
+
+    public function getTime ()
+    {
+        return $this->time();
+    }
+
+    public function getValue ()
+    {
+        return $this->value();
+    }
+
+    public function jsonSerialize ()
+    {
+        return [
+                'item' => [
+                        'time' => $this->time,
+                        'value' => $this->value
+                ]
+        ];
+    }
+}
+
 function getValue (DeviceAddress $item, $channel, $value)
 {
     global $Client;
@@ -105,28 +235,14 @@ function getValue (DeviceAddress $item, $channel, $value)
     echo $value . "\n";
 }
 
-
-function getDeviceDataViaIdOrAddress ($ID, $address)
+function getDeviceInfo (DeviceAddress $item)
 {
     global $Client;
-    $data = $Client->send("listDevices", array());
-    $foundId = false;
-    foreach ($data as $item) {
-        if (empty($item["PARENT"])) {
-            if (($item["ID"] == $ID) || ($address == $item["ADDRESS"])) {
-                $address = $item["ADDRESS"];
-                $ID = intval($item["ID"]);
-                $foundId = true;
-                break;
-            }
-        }
-    }
-    if (! $foundId) {
-        echo "Id [$ID] bzw. Adresse [$address] nicht gefunden. Abbruch\n";
-        exit(1);
-    }
-    $data = array();
-    $data[] = $item;
+    $id = $item->getId();
+    $data = $Client->send("getDeviceDescription", array(
+            $id,
+            - 1
+    ));
     return $data;
 }
 
@@ -161,7 +277,7 @@ function printDeviceInfoDetail (DeviceAddress $item, $key)
  * @param DeviceAddress $item            
  * @param unknown $key            
  */
-function printDeviceDescription (DeviceAddress $item, $key)
+function printDeviceDescriptionByKey (DeviceAddress $item, $key)
 {
     global $Client;
     $id = $item->getId();
@@ -215,38 +331,6 @@ function searchDevice ($id, $address)
             exit(1);
         }
         return new DeviceAddress($item["ID"], $item["ADDRESS"], $item["TYPE"]);
-    }
-}
-
-class DeviceAddress
-{
-
-    private $id;
-
-    private $address;
-
-    private $type;
-
-    function __construct ($id, $address, $type)
-    {
-        $this->id = intval($id);
-        $this->address = $address;
-        $this->type = $type;
-    }
-
-    function getId ()
-    {
-        return $this->id;
-    }
-
-    function getAddress ()
-    {
-        return $this->address;
-    }
-
-    function getType ()
-    {
-        return $this->type;
     }
 }
 
@@ -311,12 +395,20 @@ function checkKeyIsValideForType (DeviceAddress $item, $key)
     }
     
     if (! in_array($key, $map[$type])) {
-        echo "Der Type [$type] untersützt nicht [$key]. Untersützt wird nur [" . implode(',', $map[$type]) . "]. Abbruch.";
-        exit(1);
+        if ($key === "help") {
+            my_exit("Der Type [$type] untersützt nur [" . implode(',', $map[$type]) . "]. ", 0);
+        } else {
+            my_exit("Der Type [$type] untersützt nicht [$key]. Untersützt wird nur [" . implode(',', $map[$type]) . "]. Abbruch.");
+        }
     }
 }
 
-function getDeviceDataFromAll ()
+/**
+ * Liefert ein Array mit allen DeviceDescriptions
+ *
+ * @return unknown
+ */
+function getDeviceDescriptionList ()
 {
     global $Client;
     $data = $Client->send("listDevices", array());
@@ -324,7 +416,11 @@ function getDeviceDataFromAll ()
 }
 
 /**
- * Ausgabe der Device-Informationen in Textform
+ * Ausgabe der Device-Informationen
+ * - DeviceDescription
+ * (https://www.homegear.eu/index.php/XML_RPC_DeviceDescription))
+ * - DeviceInfo, nur name (https://www.homegear.eu/index.php/XML_RPC_DeviceInfo)
+ * in Textform
  *
  * @param unknown $data
  *            Array mit den Daten
@@ -332,18 +428,18 @@ function getDeviceDataFromAll ()
  *            bei true werden alle Daten angezeigt, bei false nur id, address,
  *            type, firmware und name
  */
-function printDeviceInfo ($data, $viewDetails = true)
+function printDeviceDescription ($data, $viewDetails = true)
 {
     global $Client;
     
-    if (is_array($data)) {
+    if (isset($data[0])) {
         $dataAsArray = $data;
     } else {
         $dataAsArray = array();
         $dataAsArray[] = $data;
     }
     
-    foreach ($data as $item) {
+    foreach ($dataAsArray as $item) {
         if (empty($item["PARENT"])) {
             $deviceInfo = $Client->send("getDeviceInfo", array(
                     $item["ID"]
@@ -411,6 +507,8 @@ if (count($argv) < 2) {
 $id = 0;
 $address = '';
 $key = '';
+$format = 'text';
+
 switch ($argv[1]) {
     case "--id":
         $id = $argv[2];
@@ -419,8 +517,8 @@ switch ($argv[1]) {
         $address = $argv[2];
         break;
     case "--list":
-        $data = getDeviceDataFromAll();
-        printDeviceInfo($data, false);
+        $data = getDeviceDescriptionList();
+        printDeviceDescription($data, false);
         exit(0);
         break;
     case "--help":
@@ -428,12 +526,11 @@ switch ($argv[1]) {
         exit(0);
         break;
 }
-$key = $argv[3];
 
-if ($key === "--all") {
-    $data = getDeviceDataViaIdOrAddress($id, $address);
-    printDeviceInfo($data);
-    exit(0);
+if (isset($argv[3])) {
+    $key = $argv[3];
+} else {
+    $key = 'help';
 }
 
 if (isset($argv[4])) {
@@ -443,6 +540,9 @@ if (isset($argv[4])) {
                 $newValue = $argv[5];
                 break;
             }
+        case '--json':
+            $format = 'json';
+            break;
         // ohne 5. Parameter fallen wir hier weiter ...
         default:
             usage();
@@ -453,11 +553,20 @@ if (isset($argv[4])) {
 
 $item = searchDevice($id, $address);
 
+if ($key === "--all") {
+    $data = getDeviceInfo($item);
+    printDeviceDescription($data);
+    exit(0);
+}
+
 checkKeyIsValideForType($item, $key);
 
 switch ($key) {
     case "SET_TEMPERATURE":
         getSetTemperature($item);
+        exit(0);
+    case 'LIST_TEMPERATURE':
+        getTemperatureList($item);
         exit(0);
     case "TEMPERATURE":
     case "HUMIDITY":
@@ -483,7 +592,7 @@ switch ($key) {
         printDeviceInfoDetail($item, $key);
         exit(0);
     case "FIRMWARE":
-        printDeviceDescription($item, $key);
+        printDeviceDescriptionByKey($item, $key);
         exit(0);
     default:
         usage();
