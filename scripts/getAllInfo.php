@@ -14,7 +14,7 @@ Aufruf [--id ID]|[--address ADDRESS]|[--all]|[--list]|[--help]
 <?php
 }
 
-function getDeviceDataViaIdOrAddress ($ID, $address)
+function getDeviceInfo ($ID, $address)
 {
     global $Client;
     $data = $Client->send("listDevices", array());
@@ -38,7 +38,7 @@ function getDeviceDataViaIdOrAddress ($ID, $address)
     return $data;
 }
 
-function getDeviceDataFromAll ()
+function getDeviceDescriptionList ()
 {
     global $Client;
     $data = $Client->send("listDevices", array());
@@ -115,25 +115,27 @@ $ID = 0;
 $list = 0;
 $address = "";
 
+
+
 if (count($argv) > 1) {
     switch ($argv[1]) {
         case "--list":
-            $data = getDeviceDataFromAll();
+            $data = getDeviceDescriptionList();
             printDeviceInfo($data, false);
             break;
         case "--id":
-            $data = getDeviceDataViaIdOrAddress($argv[2], '');
+            $data = getDeviceInfo($argv[2], '');
             printDeviceInfo($data);
             break;
         case "--address":
-            $data = getDeviceDataViaIdOrAddress('', $argv[2]);
+            $data = getDeviceInfo('', $argv[2]);
             printDeviceInfo($data);
             break;
         case "--help":
             usage();
             break;
         case "--all":
-            $data = getDeviceDataFromAll();
+            $data = getDeviceDescriptionList();
             printDeviceInfo($data);
             break;
         default:
