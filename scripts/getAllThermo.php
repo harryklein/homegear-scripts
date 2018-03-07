@@ -1,9 +1,16 @@
 #!/usr/bin/env php
 <?php
 	include_once("/var/lib/homegear/scripts/Connect.php");
+
+function usage(){
+	echo "  --help|--info\n";
+}
+
+function getAllData($Client){	
+
 	$data = $Client->send("listDevices", array());
-	// print_r($data);
-	
+        // print_r($data);
+
 	foreach ( $data as $item ){
 		if( (empty($item["PARENT"])) && ($item["TYPE"] == "HM-CC-TC")){
 			echo "------------------------------" . "\n";
@@ -44,5 +51,27 @@
 		echo "Name .....: " . $deviceInfo["NAME"]. "\n";
 		print_r($deviceInfo);*/
 	}
+}
+
+
+
+
+switch ($argv[1]) {
+	case "--id":
+		$id=$argv[2];
+		break;
+	case "--address":
+		$address=$argv[2];
+		break;
+	case "--list":
+		getAllData($Client);
+		break;
+	case "--help":
+		usage();
+		exit(0);
+		break;
+}
+
+
 
 ?>
