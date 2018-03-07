@@ -3,13 +3,14 @@
 	include_once("/var/lib/homegear/scripts/Connect.php");
 
 	function usage(&$argv){
-		echo "Aufruf $argv[0] HM-ES-PMSw1-Pl|HM-WDS10-TH-O|HM-CC-TC|HM-Sec-SC\n";
+		echo "Aufruf $argv[0] HM-ES-PMSw1-Pl|HM-WDS10-TH-O|HM-CC-TC|HM-Sec-SC|all\n";
 	}
 
 	if (count($argv) == 1 ){
 		usage($argv);
 		exit(1);
 	}
+	$allDevices = false;
 
 	switch ($argv[1]) {
 		case "HM-ES-PMSw1-Pl":
@@ -17,6 +18,9 @@
 		case "HM-CC-TC":
 		case "HM-Sec-SC":
 			$deviceType=$argv[1];
+			break;
+		case "all":
+			$allDevices = true;
 			break;
 		default:
 			usage($argv);
@@ -30,16 +34,16 @@
 
 	foreach ( $data as $item ){
 		if( empty($item["PARENT"])){
-			if ($item["TYPE"] == $deviceType) {
+			if ( ($allDevices === true) || ($item["TYPE"] == $deviceType)) {
 				$i = array();
 				$i['{#ADDRESS}'] = $item["ADDRESS"];
 				$i['{#ID}'] = $item["ID"];
-				$i['{#FIRMWARE}'] = $item["FIRMWARE"];
+				$i['{#TYPE}'] = $item["TYPE"];
 				$deviceInfo = $Client->send("getDeviceInfo", array($item["ID"]));
 				$name = $deviceInfo["NAME"];
+				$name = utf8_encode($name);
 				$name = str_replace('"','',$name);
 				$i['{#NAME}'] = $name;
-				$i['{#RSSI}'] = $deviceInfo["RSSI"];
 				$result[] = $i;
 
 			}
