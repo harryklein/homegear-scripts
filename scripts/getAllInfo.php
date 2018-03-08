@@ -7,11 +7,11 @@ function usage ()
 Gibt allgemeine Informationen (Id, Name, Type und Firmware) zu allen bekannten Geräten aus bzw. alle aktuellen Werte.    
 
 Aufruf [--id ID]|[--address ADDRESS]|[--all]|[--list]|[--help]
-	--list           : Listet alle bekannten Geräte mit Id, Name, Type, Firmware und Name auf
-	--id ID          : Ausgabe aller Details eines Gerätes mit der Id ID
-	--address ADDRESS: Ausgabe aller Details eines Gerätes mit der Adresse ADDRESS
-	--all            : Ausgabe Details aller bekannten Geräte
-	--help           : Diese Hilfe
+	--list                    : Listet alle bekannten Geräte mit Id, Name, Type, Firmware und Name auf
+	--details-id ID           : Ausgabe aller Details eines Gerätes mit der Id ID
+	--details-address ADDRESS : Ausgabe aller Details eines Gerätes mit der Adresse ADDRESS
+	--details-all             : Ausgabe Details aller bekannten Geräte
+	--help                    : Diese Hilfe
 
 <?php
 }
@@ -123,18 +123,18 @@ if (count($argv) > 1) {
             $data = getDeviceDataFromAll();
             printDeviceInfo($data, false);
             break;
-        case "--id":
+        case "--details-id":
             $data = getDeviceDataViaIdOrAddress($argv[2], '');
             printDeviceInfo($data);
             break;
-        case "--address":
+        case "--details-address":
             $data = getDeviceDataViaIdOrAddress('', $argv[2]);
             printDeviceInfo($data);
             break;
         case "--help":
             usage();
             break;
-        case "--all":
+        case "--details-all":
             $data = getDeviceDataFromAll();
             printDeviceInfo($data);
             break;
