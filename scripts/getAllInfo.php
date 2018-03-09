@@ -154,6 +154,14 @@ exit(2);
 // ===========================================================
 // = Helper =
 // ===========================================================
+
+
+/**
+ * Ausgabe "  <KEY> ......... : <VALUE>"
+ * 
+ * Die Anzahl der Leerzeichen vor <KEY> legt $level fesst. Die Position vom Linken Rand bis zum Doppelpunkt 
+ * ist immer 35
+ */
 function printLine ($key, $value = '', $level = 0)
 {
     $indent = 35 - $level;
