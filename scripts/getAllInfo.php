@@ -53,55 +53,58 @@ function printDeviceInfo ($data, $viewDetails = true)
     
     foreach ($data as $item) {
         if (empty($item["PARENT"])) {
-            $deviceInfo = $Client->send("getDeviceInfo",
-                    array(
-                            $item["ID"]
-                    ));
-            $item["NAME"] = utf8_encode($deviceInfo["NAME"]);
-            echo "------------------------------" . "\n";
-            echo "Id ....... : " . $item["ID"] . "\n";
-            echo "Address .. : " . $item["ADDRESS"] . "\n";
-            echo "Type ..... : " . $item["TYPE"] . "\n";
-            echo "Firmware . : " . $item["FIRMWARE"] . "\n";
-            echo "Name ..... : " . $item["NAME"] . "\n";
+            $deviceInfo = $Client->send("getDeviceInfo", array(
+                    $item["ID"]
+            ));
             
-            echo "JSON:" . json_encode($item) . "\n";
+            $item["NAME"] = utf8_encode($deviceInfo["NAME"]);
+            printSubSeparator();
+            printLine("Id", $item["ID"]);
+            printLine("Address", $item["ADDRESS"]);
+            printLine("Type", $item["TYPE"]);
+            printLine("Firmware", $item["FIRMWARE"]);
+            printLine("Name", $item["NAME"]);
             
             if (! $viewDetails) {
                 continue;
             }
+            
+            $allKeys = array_keys($item);
+            foreach ($allKeys as $key) {
+                switch ($key) {
+                    case 'ID':
+                    case 'ADDRESS':
+                    case 'TYPE':
+                    case 'FIRMWARE':
+                    case 'NAME':
+                        continue 2;
+                }
+                if (is_array($item[$key])) {
+                    printLine($key, implode(',', $item[$key]));
+                } else {
+                    printLine($key, $item[$key]);
+                }
+            }
+            
             $amountChannel = count($item["CHANNELS"]);
             for ($channel = 0; $channel < $amountChannel; $channel ++) {
-                echo "Channel : $channel \n";
-                echo "=VALUES=\n";
-                $paramSet = $Client->send("getParamset", 
-                        array(
-                                $item["ID"],
-                                $channel,
-                                "VALUES"
-                        ));
-                foreach (array_keys($paramSet) as $key) {
-                    printf("- %-25s : %s\n", $key, $paramSet[$key]);
-                }
-                echo "=MASTER=\n";
-                $paramSet = $Client->send("getParamset", 
-                        array(
-                                $item["ID"],
-                                $channel,
-                                "MASTER"
-                        ));
-                foreach (array_keys($paramSet) as $key) {
-                    printf("- %-25s : %s\n", $key, $paramSet[$key]);
-                }
-                echo "=LINK=\n";
-                $paramSet = $Client->send("getParamset", 
-                        array(
-                                $item["ID"],
-                                $channel,
-                                "LINK"
-                        ));
-                foreach (array_keys($paramSet) as $key) {
-                    printf("- %-25s : %s\n", $key, $paramSet[$key]);
+                
+                printHeader("Channel", $channel);
+                foreach (array(
+                        "VALUES",
+                        "MASTER",
+                        "LINK"
+                ) as $type) {
+                    printHeader2($type);
+                    $paramSet = $Client->send("getParamset",
+                            array(
+                                    $item["ID"],
+                                    $channel,
+                                    $type
+                            ));
+                    foreach (array_keys($paramSet) as $key) {
+                        printSubLine($key, $paramSet[$key]);
+                    }
                 }
             }
         }
@@ -147,5 +150,39 @@ if (count($argv) > 1) {
 
 usage();
 exit(2);
+
+// ===========================================================
+// = Helper =
+// ===========================================================
+function printLine ($key, $value = '', $level = 0)
+{
+    $indent = 35 - $level;
+    $key = $key . ' ';
+    if (is_array($value)) {
+        $value = implode(',', $value);
+    }
+    $format = "%' " . $level . "s%'.-" . $indent . "s : %s\n";
+    printf($format, "", $key, $value);
+}
+
+function printSubLine ($key, $value = '')
+{
+    printLine($key, $value, 4);
+}
+
+function printHeader ($key, $value = '')
+{
+    printf("%s %s\n", $key, $value);
+}
+
+function printHeader2 ($value = '')
+{
+    printf("%' 2s= %s =\n", '', $value);
+}
+
+function printSubSeparator ()
+{
+    printf("%'--40s\n", '');
+}
 
 ?>
