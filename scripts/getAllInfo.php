@@ -155,11 +155,12 @@ exit(2);
 // = Helper =
 // ===========================================================
 
-
 /**
- * Ausgabe "  <KEY> ......... : <VALUE>"
- * 
- * Die Anzahl der Leerzeichen vor <KEY> legt $level fesst. Die Position vom Linken Rand bis zum Doppelpunkt 
+ * Ausgabe " <KEY> .........
+ * : <VALUE>"
+ *
+ * Die Anzahl der Leerzeichen vor <KEY> legt $level fesst. Die Position vom
+ * linken Rand bis zum Doppelpunkt
  * ist immer 35
  */
 function printLine ($key, $value = '', $level = 0)
@@ -173,24 +174,42 @@ function printLine ($key, $value = '', $level = 0)
     printf($format, "", $key, $value);
 }
 
+/**
+ * Ausgabe " <KEY> .........
+ * : <VALUE>"
+ *
+ * Die Anzahl der Leerzeichen vor <KEY> ist 4. Die Position vom linken Rand bis
+ * zum Doppelpunkt
+ * ist immer 35
+ */
 function printSubLine ($key, $value = '')
 {
     printLine($key, $value, 4);
 }
 
+/**
+ * Ausgabe "<KEY> <VALUE>"
+ */
 function printHeader ($key, $value = '')
 {
     printf("%s %s\n", $key, $value);
 }
 
+/**
+ * Ausgabe " = <VALUE> ="
+ */
 function printHeader2 ($value = '')
 {
     printf("%' 2s= %s =\n", '', $value);
 }
 
+/**
+ * Ausgabe "-------------------------------------------------------"
+ * (55 Zeichen)
+ */
 function printSubSeparator ()
 {
-    printf("%'--40s\n", '');
+    printf("%'--55s\n", '');
 }
 
 ?>
