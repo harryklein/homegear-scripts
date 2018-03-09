@@ -20,18 +20,18 @@ function getDeviceDataViaIdOrAddress ($ID, $address)
 {
     global $Client;
     $data = $Client->send("listDevices", array());
-    $foundId = false;
+    $foundIdOrAddress = false;
     foreach ($data as $item) {
         if (empty($item["PARENT"])) {
             if (($item["ID"] == $ID) || ($address == $item["ADDRESS"])) {
                 $address = $item["ADDRESS"];
                 $ID = intval($item["ID"]);
-                $foundId = true;
+                $foundIdOrAddress = true;
                 break;
             }
         }
     }
-    if (! $foundId) {
+    if (! $foundIdOrAddress) {
         echo "Id [$ID] bzw. Adresse [$address] nicht gefunden. Abbruch\n";
         exit(1);
     }
