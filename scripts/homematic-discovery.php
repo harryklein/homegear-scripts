@@ -41,17 +41,13 @@ foreach ($data as $item) {
             $i['{#ADDRESS}'] = $item["ADDRESS"];
             $i['{#ID}'] = $item["ID"];
             $i['{#TYPE}'] = $item["TYPE"];
-            $deviceInfo = $Client->send("getDeviceInfo", array(
-                $item["ID"]
-            ));
-            if (isset($deviceInfo["NAME"])) {
-                $name = $deviceInfo["NAME"];
-            } else {
-                $name = "New";
-            }
 
+            $name = $item["NAME"];
             $name = utf8_encode($name);
             $name = str_replace('"', '', $name);
+            if (empty($name)) {
+                $name = 'New';
+            }
             $i['{#NAME}'] = $name;
             $result[] = $i;
         }
