@@ -53,17 +53,18 @@ function printDeviceInfo($data, $viewDetails = true)
 
     foreach ($data as $item) {
         if (empty($item["PARENT"])) {
-            $deviceInfo = $Client->send("getDeviceInfo", array(
-                $item["ID"]
-            ));
 
-            $item["NAME"] = utf8_encode($deviceInfo["NAME"]);
+            $name = utf8_encode($item["NAME"]);
+            if (empty($name)){
+                $name = 'New';
+            }
+            
             printSubSeparator();
             printLine("Id", $item["ID"]);
             printLine("Address", $item["ADDRESS"]);
             printLine("Type", $item["TYPE"]);
             printLine("Firmware", $item["FIRMWARE"]);
-            printLine("Name", $item["NAME"]);
+            printLine("Name", $name);
 
             if (! $viewDetails) {
                 continue;
