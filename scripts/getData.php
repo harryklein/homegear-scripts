@@ -4,70 +4,68 @@ include_once ("/var/lib/homegear/scripts/Connect.php");
 
 $map = array();
 $map['HM-ES-PMSw1-Pl'] = array(
-        'NAME',
-        'RSSI',
-        'FIRMWARE',
-        'BOOT',
-        'CURRENT',
-        'ENERGY_COUNTER',
-        'FREQUENCY',
-        'POWER',
-        'VOLTAGE',
-        'STATE'
+    'NAME',
+    'RSSI',
+    'FIRMWARE',
+    'BOOT',
+    'CURRENT',
+    'ENERGY_COUNTER',
+    'FREQUENCY',
+    'POWER',
+    'VOLTAGE',
+    'STATE'
 );
 $map['HM-WDS10-TH-O'] = array(
-        'NAME',
-        'RSSI',
-        'FIRMWARE',
-        'TEMPERATURE',
-        'HUMIDITY'
+    'NAME',
+    'RSSI',
+    'FIRMWARE',
+    'TEMPERATURE',
+    'HUMIDITY'
 );
 $map['HM-CC-TC'] = array(
-        'NAME',
-        'RSSI',
-        'FIRMWARE',
-        'TEMPERATURE',
-        'HUMIDITY',
-        'SET_TEMPERATURE',
-        'SETPOINT',
-        'ADJUSTING_COMMAND',
-        'ADJUSTING_DATA'
+    'NAME',
+    'RSSI',
+    'FIRMWARE',
+    'TEMPERATURE',
+    'HUMIDITY',
+    'SET_TEMPERATURE',
+    'SETPOINT',
+    'ADJUSTING_COMMAND',
+    'ADJUSTING_DATA'
 );
 $map['HM-Sec-SC'] = array(
-        'NAME',
-        'RSSI',
-        'FIRMWARE',
-        'STATE'
+    'NAME',
+    'RSSI',
+    'FIRMWARE',
+    'STATE'
 );
 
 if (isset($argv[4])) {
     print_r($map);
 }
 
-function usage ()
+function usage()
 {
     global $argv;
-    echo "Aufruf: " . $argv[0] .
-             " [--address ADDRESS]|[--id ID] KEY [--set VALUE]\n";
+    echo "Aufruf: " . $argv[0] . " [--address ADDRESS]|[--id ID] KEY [--set VALUE]\n";
 }
 
-function getSetTemperature ($id)
+function getSetTemperature($id)
 {
     global $Client;
     $channel = 2;
     $date = getDate();
     $time = ($date['hours'] * 60 + $date['minutes']);
-    $paramSet = $Client->send("getParamset", 
-            array(
-                    $id,
-                    $channel,
-                    "MASTER"
-            ));
-    
+    $paramSet = $Client->send("getParamset", array(
+        $id,
+        $channel,
+        "MASTER"
+    ));
+
     $weekday = strtoupper($date['weekday']);
-    
+
     $start = 0;
-    
+
     for ($i = 1; $i <= 24; $i ++) {
         $KEY_TIME = 'TIMEOUT_' . $weekday . '_' . $i;
         $KEY_TEMP = 'TEMPERATUR_' . $weekday . '_' . $i;
@@ -81,43 +79,41 @@ function getSetTemperature ($id)
     echo "$temperature\n";
 }
 
-function getValue ($id, $channel, $value)
+function getValue($id, $channel, $value)
 {
     global $Client;
-    $value = $Client->send("getValue", 
-            array(
-                    $id,
-                    $channel,
-                    $value
-            ));
+    $value = $Client->send("getValue", array(
+        $id,
+        $channel,
+        $value
+    ));
     if (empty($value)) {
         $value = 0;
     }
     echo $value . "\n";
 }
 
-function getDeviceInfo ($id, $key)
+function getDeviceInfo($id, $key)
 {
     global $Client;
     $deviceInfo = $Client->send("getDeviceInfo", array(
-            $id
+        $id
     ));
     echo $deviceInfo[$key] . "\n";
 }
 
-function getDeviceDetails ($id, $key)
+function getDeviceDetails($id, $key)
 {
     global $Client;
     $fields = array(
-            "FIRMWARE",
-            "ID",
-            "ADDRESS"
+        "FIRMWARE",
+        "ID",
+        "ADDRESS"
     );
-    $data = $Client->send("listDevices", 
-            array(
-                    false,
-                    $fields
-            ));
+    $data = $Client->send("listDevices", array(
+        false,
+        $fields
+    ));
     foreach ($data as $i) {
         if ($i['ID'] === $id) {
             echo $i[$key] . "\n";
@@ -129,13 +125,15 @@ function getDeviceDetails ($id, $key)
 
 /**
  * Sucht nach einem Gerät, welches entweder die Id oder die Adresse besitzt.
- * 
- * 
- * @param unknown $id Id des Gerätes oder leer
- * @param unknown $address Adresse des Gerätes oder leer
+ *
+ *
+ * @param unknown $id
+ *            Id des Gerätes oder leer
+ * @param unknown $address
+ *            Adresse des Gerätes oder leer
  * @return Array mit den Feldern ADDRESS, ID und TYPE
  */
-function searchDevice ($id, $address)
+function searchDevice($id, $address)
 {
     global $Client;
 
@@ -161,20 +159,18 @@ function searchDevice ($id, $address)
     }
 }
 
-
-function mapAddressToId ($address)
+function mapAddressToId($address)
 {
     global $Client;
     $fields = array(
-            "FIRMWARE",
-            "ID",
-            "ADDRESS"
+        "FIRMWARE",
+        "ID",
+        "ADDRESS"
     );
-    $data = $Client->send("listDevices", 
-            array(
-                    false,
-                    $fields
-            ));
+    $data = $Client->send("listDevices", array(
+        false,
+        $fields
+    ));
     foreach ($data as $item) {
         if ($item["ADDRESS"] == $address) {
             $id = $item["ID"];
@@ -185,28 +181,27 @@ function mapAddressToId ($address)
     exit(1);
 }
 
-function setValue ($id, $channel, $key, $newValue)
+function setValue($id, $channel, $key, $newValue)
 {
     global $Client;
     $param = array(
-            $id,
-            $channel,
-            "VALUES",
-            array(
-                    $key => $newValue
-            )
+        $id,
+        $channel,
+        "VALUES",
+        array(
+            $key => $newValue
+        )
     );
     print_r($param);
     // $result = $Client->send("putParamset", $param);
-    $result = $Client->send("putParamset", 
-            array(
-                    $id,
-                    2,
-                    "VALUES",
-                    array(
-                            "SETPOINT" => 21.0
-                    )
-            ));
+    $result = $Client->send("putParamset", array(
+        $id,
+        2,
+        "VALUES",
+        array(
+            "SETPOINT" => 21.0
+        )
+    ));
     echo "RESULT [$result]\n";
 }
 
@@ -251,33 +246,29 @@ if (isset($argv[4])) {
     }
 }
 
-
-
 $item = searchDevice($id, $address);
 
 $type = $item['TYPE'];
 $id = $item['ID'];
 
-function checkTypeAndKey($item, $value){
+function checkTypeAndKey($item, $value)
+{
     global $map;
-    
+
     $type = $item['TYPE'];
     $address = $item['ADDRESS'];
     if (! isset($map[$type])) {
         echo "Die Adresse [$address] hat den Type [$type]. Dieser Type wird nicht unterstützt. Abbruch.";
         exit(1);
     }
-    
+
     if (! in_array($value, $map[$type])) {
-        echo "Der Type [$type] untersützt nicht [$value]. Untersützt wird nur [" .
-        implode(',', $map[$type]) . "]. Abbruch.";
+        echo "Der Type [$type] untersützt nicht [$value]. Untersützt wird nur [" . implode(',', $map[$type]) . "]. Abbruch.";
         exit(1);
     }
 }
 
 checkTypeAndKey($item, $value);
-
-
 
 switch ($value) {
     case "SET_TEMPERATURE":
