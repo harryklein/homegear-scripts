@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-function usage ()
+function usage()
 {
     ?>
 Gibt allgemeine Informationen (Id, Name, Type und Firmware) zu allen bekannten Geräten aus bzw. alle aktuellen Werte.    
@@ -16,7 +16,7 @@ Aufruf [--id ID]|[--address ADDRESS]|[--all]|[--list]|[--help]
 <?php
 }
 
-function getDeviceDataViaIdOrAddress ($ID, $address)
+function getDeviceDataViaIdOrAddress($ID, $address)
 {
     global $Client;
     $data = $Client->send("listDevices", array());
@@ -40,23 +40,23 @@ function getDeviceDataViaIdOrAddress ($ID, $address)
     return $data;
 }
 
-function getDeviceDataFromAll ()
+function getDeviceDataFromAll()
 {
     global $Client;
     $data = $Client->send("listDevices", array());
     return $data;
 }
 
-function printDeviceInfo ($data, $viewDetails = true)
+function printDeviceInfo($data, $viewDetails = true)
 {
     global $Client;
-    
+
     foreach ($data as $item) {
         if (empty($item["PARENT"])) {
             $deviceInfo = $Client->send("getDeviceInfo", array(
-                    $item["ID"]
+                $item["ID"]
             ));
-            
+
             $item["NAME"] = utf8_encode($deviceInfo["NAME"]);
             printSubSeparator();
             printLine("Id", $item["ID"]);
@@ -64,11 +64,11 @@ function printDeviceInfo ($data, $viewDetails = true)
             printLine("Type", $item["TYPE"]);
             printLine("Firmware", $item["FIRMWARE"]);
             printLine("Name", $item["NAME"]);
-            
+
             if (! $viewDetails) {
                 continue;
             }
-            
+
             $allKeys = array_keys($item);
             foreach ($allKeys as $key) {
                 switch ($key) {
@@ -85,23 +85,22 @@ function printDeviceInfo ($data, $viewDetails = true)
                     printLine($key, $item[$key]);
                 }
             }
-            
+
             $amountChannel = count($item["CHANNELS"]);
             for ($channel = 0; $channel < $amountChannel; $channel ++) {
-                
+
                 printHeader("Channel", $channel);
                 foreach (array(
-                        "VALUES",
-                        "MASTER",
-                        "LINK"
+                    "VALUES",
+                    "MASTER",
+                    "LINK"
                 ) as $type) {
                     printHeader2($type);
-                    $paramSet = $Client->send("getParamset",
-                            array(
-                                    $item["ID"],
-                                    $channel,
-                                    $type
-                            ));
+                    $paramSet = $Client->send("getParamset", array(
+                        $item["ID"],
+                        $channel,
+                        $type
+                    ));
                     foreach (array_keys($paramSet) as $key) {
                         printSubLine($key, $paramSet[$key]);
                     }
@@ -163,7 +162,7 @@ exit(2);
  * linken Rand bis zum Doppelpunkt
  * ist immer 35
  */
-function printLine ($key, $value = '', $level = 0)
+function printLine($key, $value = '', $level = 0)
 {
     $indent = 35 - $level;
     $key = $key . ' ';
@@ -182,7 +181,7 @@ function printLine ($key, $value = '', $level = 0)
  * zum Doppelpunkt
  * ist immer 35
  */
-function printSubLine ($key, $value = '')
+function printSubLine($key, $value = '')
 {
     printLine($key, $value, 4);
 }
@@ -190,7 +189,7 @@ function printSubLine ($key, $value = '')
 /**
  * Ausgabe "<KEY> <VALUE>"
  */
-function printHeader ($key, $value = '')
+function printHeader($key, $value = '')
 {
     printf("%s %s\n", $key, $value);
 }
@@ -198,7 +197,7 @@ function printHeader ($key, $value = '')
 /**
  * Ausgabe " = <VALUE> ="
  */
-function printHeader2 ($value = '')
+function printHeader2($value = '')
 {
     printf("%' 2s= %s =\n", '', $value);
 }
@@ -207,7 +206,7 @@ function printHeader2 ($value = '')
  * Ausgabe "-------------------------------------------------------"
  * (55 Zeichen)
  */
-function printSubSeparator ()
+function printSubSeparator()
 {
     printf("%'--55s\n", '');
 }
