@@ -3,6 +3,18 @@
 include_once ("/var/lib/homegear/scripts/Connect.php");
 
 $map = array();
+$map['HM-ES-PMSw1-Pl-DN-R1'] = array(
+    'NAME',
+    'RSSI',
+    'FIRMWARE',
+    'BOOT',
+    'CURRENT',
+    'ENERGY_COUNTER',
+    'FREQUENCY',
+    'POWER',
+    'VOLTAGE',
+    'STATE'
+);
 $map['HM-ES-PMSw1-Pl'] = array(
     'NAME',
     'RSSI',
@@ -127,9 +139,9 @@ function getDeviceDetails($id, $key)
  * Sucht nach einem Gerät, welches entweder die Id oder die Adresse besitzt.
  *
  *
- * @param unknown $id
+ * @param string $id
  *            Id des Gerätes oder leer
- * @param unknown $address
+ * @param string $address
  *            Adresse des Gerätes oder leer
  * @return Array mit den Feldern ADDRESS, ID und TYPE
  */
