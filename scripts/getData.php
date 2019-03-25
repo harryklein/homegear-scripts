@@ -143,25 +143,6 @@ function getDeviceInfo($id, $key)
     echo $deviceInfo[$key] . "\n";
 }
 
-function getDeviceDescription($id, $key)
-{
-    global $Client;
-    $data = $Client->send("listDevices", array(false, array('NAME', 'ID')));
-    foreach ($data as $d) {
-        if ( $d['ID'] == $id) {
-            if ($d[$key] == "") {
-                echo "New\n";
-                return;
-            }
-            echo $d[$key] . "\n" ;
-            return;
-        }
-    }
-    echo "Interner Fehler\n";
-    
-}
-
-
 function getDeviceDetails($id, $key)
 {
     global $Client;
@@ -177,7 +158,12 @@ function getDeviceDetails($id, $key)
     ));
     foreach ($data as $i) {
         if ($i['ID'] === $id) {
-            echo $i[$key] . "\n";
+            if ( ($key == 'NAME') && ( $i[$key] === "")){
+                $value = 'New';
+            } else {
+                $value = $i[$key];
+            }
+            echo $value . "\n";
             return;
         }
     }
