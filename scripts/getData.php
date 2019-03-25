@@ -13,7 +13,8 @@ $map['HM-ES-PMSw1-Pl-DN-R1'] = array(
     'FREQUENCY',
     'POWER',
     'VOLTAGE',
-    'STATE'
+    'STATE',
+    'POWERUP_ACTION'
 );
 $map['HM-ES-PMSw1-Pl'] = array(
     'NAME',
@@ -25,7 +26,8 @@ $map['HM-ES-PMSw1-Pl'] = array(
     'FREQUENCY',
     'POWER',
     'VOLTAGE',
-    'STATE'
+    'STATE',
+    'POWERUP_ACTION'
 );
 $map['HM-WDS10-TH-O'] = array(
     'NAME',
@@ -53,7 +55,7 @@ $map['HM-Sec-SC'] = array(
 );
 
 if (isset($argv[4])) {
-    print_r($map);
+    // print_r($map);
 }
 
 function usage()
@@ -101,6 +103,28 @@ function getValue($id, $channel, $value)
     ));
     if (empty($value)) {
         $value = 0;
+    }
+    echo $value . "\n";
+}
+
+function getParameter($id, $channel, $param)
+{
+    global $Client;
+    $value = $Client->send("getParamset", array(
+        $id,
+        $channel
+    ));
+    
+    // print_r($value);
+    // print_r($param);
+    if (is_array($value)) {
+        if (isset($value[$param])) {
+            $value =  $value[$param];
+        } else {
+            $value = -2;
+        }
+    } else {
+        $value = -1;
     }
     echo $value . "\n";
 }
@@ -196,25 +220,11 @@ function mapAddressToId($address)
 function setValue($id, $channel, $key, $newValue)
 {
     global $Client;
-    $param = array(
-        $id,
-        $channel,
-        "VALUES",
-        array(
-            $key => $newValue
-        )
-    );
-    print_r($param);
-    // $result = $Client->send("putParamset", $param);
-    $result = $Client->send("putParamset", array(
-        $id,
-        2,
-        "VALUES",
-        array(
-            "SETPOINT" => 21.0
-        )
-    ));
-    echo "RESULT [$result]\n";
+    $result = $Client->send("putParamset", array($id, 1, "MASTER",array($key => $newValue)));
+    
+    echo "RESULT [";
+    print_r($result);
+    echo "]\n";
 }
 
 // ===========================================================
@@ -293,24 +303,35 @@ switch ($value) {
         exit(0);
     case "SETPOINT":
         if (isset($newValue)) {
-            setValue($id, 2, $value, intVal($newValue));
+            echo "DISABLE\n";
+            // setValue($id, 2, $value, intVal($newValue));
         }
     case "ADJUSTING_COMMAND":
     case "ADJUSTING_DATA":
-    case "BOOT":
     case "CURRENT":
     case "ENERGY_COUNTER":
     case "FREQUENCY":
     case "POWER":
     case "VOLTAGE":
+    case "BOOT":
         getValue($id, 2, $value);
         exit(0);
     case "RSSI":
     case "NAME":
-        getDeviceInfo($id, $value);
+        getValue($id, 1, $value);
         exit(0);
     case "FIRMWARE":
         getDeviceDetails($id, $value);
+        exit(0);
+    case "POWERUP_ACTION":
+        if (isset($newValue)) {
+            echo "SET:";
+            getParameter($id, 1, $value);
+            setValue($id, 1, 'POWERUP_ACTION', intVal($newValue));
+            getParameter($id, 1, $value);
+        } else {
+            getParameter($id, 1, $value);
+        }
         exit(0);
     default:
         usage();
