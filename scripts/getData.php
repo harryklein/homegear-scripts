@@ -129,6 +129,11 @@ function getParameter($id, $channel, $param)
     echo $value . "\n";
 }
 
+/**
+ * Liefert nur Werte für ID, INTERFACE und RSSI
+ * @param string $id
+ * @param String $key
+ */
 function getDeviceInfo($id, $key)
 {
     global $Client;
@@ -163,7 +168,8 @@ function getDeviceDetails($id, $key)
     $fields = array(
         "FIRMWARE",
         "ID",
-        "ADDRESS"
+        "ADDRESS",
+        "NAME"
     );
     $data = $Client->send("listDevices", array(
         false,
@@ -336,11 +342,11 @@ switch ($value) {
         getValue($id, 2, $value);
         exit(0);
     case "RSSI":
-    case "FIRMWARE":
         getDeviceInfo($id, $value);
         exit(0);
+    case "FIRMWARE":
     case "NAME":
-        getDeviceDescription($id, $value);
+        getDeviceDetails($id, $value);
         exit(0);
     case "POWERUP_ACTION":
         if (isset($newValue)) {
