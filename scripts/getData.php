@@ -138,6 +138,25 @@ function getDeviceInfo($id, $key)
     echo $deviceInfo[$key] . "\n";
 }
 
+function getDeviceDescription($id, $key)
+{
+    global $Client;
+    $data = $Client->send("listDevices", array(false, array('NAME', 'ID')));
+    foreach ($data as $d) {
+        if ( $d['ID'] == $id) {
+            if ($d[$key] == "") {
+                echo "New\n";
+                return;
+            }
+            echo $d[$key] . "\n" ;
+            return;
+        }
+    }
+    echo "Interner Fehler\n";
+    
+}
+
+
 function getDeviceDetails($id, $key)
 {
     global $Client;
@@ -317,11 +336,11 @@ switch ($value) {
         getValue($id, 2, $value);
         exit(0);
     case "RSSI":
-    case "NAME":
-        getValue($id, 1, $value);
-        exit(0);
     case "FIRMWARE":
-        getDeviceDetails($id, $value);
+        getDeviceInfo($id, $value);
+        exit(0);
+    case "NAME":
+        getDeviceDescription($id, $value);
         exit(0);
     case "POWERUP_ACTION":
         if (isset($newValue)) {
