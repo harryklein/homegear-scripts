@@ -114,23 +114,24 @@ function getParameter($id, $channel, $param)
         $id,
         $channel
     ));
-    
+
     // print_r($value);
     // print_r($param);
     if (is_array($value)) {
         if (isset($value[$param])) {
-            $value =  $value[$param];
+            $value = $value[$param];
         } else {
-            $value = -2;
+            $value = - 2;
         }
     } else {
-        $value = -1;
+        $value = - 1;
     }
     echo $value . "\n";
 }
 
 /**
  * Liefert nur Werte für ID, INTERFACE und RSSI
+ *
  * @param string $id
  * @param String $key
  */
@@ -158,7 +159,7 @@ function getDeviceDetails($id, $key)
     ));
     foreach ($data as $i) {
         if ($i['ID'] === $id) {
-            if ( ($key == 'NAME') && ( $i[$key] === "")){
+            if (($key == 'NAME') && ($i[$key] === "")) {
                 $value = 'New';
             } else {
                 $value = $i[$key];
@@ -231,8 +232,15 @@ function mapAddressToId($address)
 function setValue($id, $channel, $key, $newValue)
 {
     global $Client;
-    $result = $Client->send("putParamset", array($id, 1, "MASTER",array($key => $newValue)));
-    
+    $result = $Client->send("putParamset", array(
+        $id,
+        1,
+        "MASTER",
+        array(
+            $key => $newValue
+        )
+    ));
+
     echo "RESULT [";
     print_r($result);
     echo "]\n";
