@@ -340,7 +340,8 @@ switch ($value) {
             echo "DISABLE\n";
             setValue($id, 2, $value, intVal($newValue),"MASTER");
         }
-        break;
+        getParameter($id, 2, $value);
+        exit(0);
     case "ADJUSTING_COMMAND":
     case "ADJUSTING_DATA":
     case "CURRENT":
