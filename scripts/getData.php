@@ -45,7 +45,9 @@ $map['HM-CC-TC'] = array(
     'SET_TEMPERATURE',
     'SETPOINT',
     'ADJUSTING_COMMAND',
-    'ADJUSTING_DATA'
+    'ADJUSTING_DATA',
+    'MODE_TEMPERATUR_REGULATOR',
+    'CONFIG_PENDING'
 );
 $map['HM-Sec-SC'] = array(
     'NAME',
@@ -229,17 +231,22 @@ function mapAddressToId($address)
     exit(1);
 }
 
-function setValue($id, $channel, $key, $newValue)
+function setValue($id, $channel, $key, $newValue, $paramsetKey="VALUES")
 {
     global $Client;
-    $result = $Client->send("putParamset", array(
+
+    $param = array(
         $id,
-        1,
-        "MASTER",
+        $channel,
+        $paramsetKey,
         array(
             $key => $newValue
         )
-    ));
+    );
+
+    print_r($param);
+
+    $result = $Client->send("putParamset",$param);
 
     echo "RESULT [";
     print_r($result);
@@ -320,11 +327,20 @@ switch ($value) {
     case "STATE":
         getValue($id, 1, $value);
         exit(0);
+    case "CONFIG_PENDING":
+        getValue($id, 0, $value);
+        exit(0);
     case "SETPOINT":
         if (isset($newValue)) {
             echo "DISABLE\n";
-            // setValue($id, 2, $value, intVal($newValue));
+            setValue($id, 2, $value, intVal($newValue));
         }
+    case "MODE_TEMPERATUR_REGULATOR":
+       if (isset($newValue)) {
+            echo "DISABLE\n";
+            setValue($id, 2, $value, intVal($newValue),"MASTER");
+        }
+        break;
     case "ADJUSTING_COMMAND":
     case "ADJUSTING_DATA":
     case "CURRENT":
