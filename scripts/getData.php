@@ -16,6 +16,15 @@ $map['HM-ES-PMSw1-Pl-DN-R1'] = array(
     'STATE',
     'POWERUP_ACTION'
 );
+
+$map['HM-LC-Sw1-Pl-DN-R1'] = array(
+    'NAME',
+    'RSSI',
+    'FIRMWARE',
+    'BOOT',
+    'STATE',
+    'POWERUP_ACTION'
+);
 $map['HM-ES-PMSw1-Pl'] = array(
     'NAME',
     'RSSI',
@@ -47,7 +56,8 @@ $map['HM-CC-TC'] = array(
     'ADJUSTING_COMMAND',
     'ADJUSTING_DATA',
     'MODE_TEMPERATUR_REGULATOR',
-    'CONFIG_PENDING'
+    'CONFIG_PENDING',
+    'GGG'
 );
 $map['HM-Sec-SC'] = array(
     'NAME',
@@ -107,6 +117,12 @@ function getValue($id, $channel, $value)
         $value = 0;
     }
     echo $value . "\n";
+}
+
+function ggg($id){
+    global $Client;
+    $result = $Client->send("getServiceMessages", array(true));
+    print_r($result);
 }
 
 function getParameter($id, $channel, $param)
@@ -326,22 +342,29 @@ switch ($value) {
     case "HUMIDITY":
     case "STATE":
         getValue($id, 1, $value);
+        if (isset($newValue)) {
+            echo "DISABLE\n";
+            setValue($id, 1, $value, intVal($newValue));
+        }
         exit(0);
     case "CONFIG_PENDING":
         getValue($id, 0, $value);
+        exit(0);
+    case "GGG":
+        ggg();
+	exit(0);
+    case "MODE_TEMPERATUR_REGULATOR":
+       if (isset($newValue)) {
+            setValue($id, 2, $value, intVal($newValue),"MASTER");
+        }
+        getValue($id,2,$value);
+        getParameter($id, 2, $value);
         exit(0);
     case "SETPOINT":
         if (isset($newValue)) {
             echo "DISABLE\n";
             setValue($id, 2, $value, intVal($newValue));
         }
-    case "MODE_TEMPERATUR_REGULATOR":
-       if (isset($newValue)) {
-            echo "DISABLE\n";
-            setValue($id, 2, $value, intVal($newValue),"MASTER");
-        }
-        getParameter($id, 2, $value);
-        exit(0);
     case "ADJUSTING_COMMAND":
     case "ADJUSTING_DATA":
     case "CURRENT":
